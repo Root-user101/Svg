@@ -4,7 +4,7 @@
   <title>SVG Logo</title>
   <desc>Designed for the SVG Logo Contest in 2006 by Harvey Rayner, and adopted by W3C in 2009. It is available under the Creative Commons license for those who have an SVG product or who are using SVG on their site.</desc>
  
-   
+   <title>Hacked</title>
    <script>alert(5)</script>
 
    <defs>
