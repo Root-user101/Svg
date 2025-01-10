@@ -5,7 +5,7 @@
   <desc>Designed for the SVG Logo Contest in 2006 by Harvey Rayner, and adopted by W3C in 2009. It is available under the Creative Commons license for those who have an SVG product or who are using SVG on their site.</desc>
  
    
-   
+   <script>alert(5)</script>
 
    <defs>
      <g fill="#ffffff" id="SVG" transform="scale(2) translate(20,79)">
