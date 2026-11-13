@@ -30,7 +30,7 @@ jobs:
       - name: Run due recon jobs
         working-directory: python-server
         env:
-          DATABASE_URL: \${{ secrets.RECON_DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.RECON_DATABASE_URL }}
           RECON_MAX_JOBS_PER_RUN: "2"
           RECON_MAX_RUNTIME_SECONDS: "1200"
         run: python scheduled_runner.py
