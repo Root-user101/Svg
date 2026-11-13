@@ -48,7 +48,8 @@ def in_scope(host, entries):
         if not base:
             continue
         if item.get("type") == "Wildcard domain":
-            if host == base or host.endswith("." + base):
+            # A wildcard covers subdomains, not the apex/root hostname.
+            if host.endswith("." + base):
                 return True
         elif host == base:
             return True
@@ -114,7 +115,7 @@ def fetch_public_service(url, timeout=10, limit=1_000_000):
     """Fetch only fixed public intelligence providers, never target-supplied URLs."""
     parsed = urllib.parse.urlparse(url)
     if parsed.scheme != "https" or parsed.hostname not in {
-        "crt.sh", "web.archive.org", "rdap.org"
+        "crt.sh", "web.archive.org", "rdap.org", "ipapi.co"
     }:
         return {"error": "External URL not allow-listed"}
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/json,*/*"})
@@ -218,12 +219,25 @@ def rdap_domain(domain):
     except Exception:
         return {"domain": domain, "note": "RDAP response could not be parsed"}
 
+def ip_network_intel(ip):
+    response = fetch_public_service("https://ipapi.co/" + urllib.parse.quote(ip) + "/json/", timeout=7, limit=100_000)
+    if response.get("status") != 200:
+        return {"ip": ip, "note": response.get("error", "IP intelligence unavailable")}
+    try:
+        data = json.loads(response["body"])
+        return {"ip": ip, "asn": data.get("asn"), "org": data.get("org"),
+                "network": data.get("network"), "country": data.get("country_name")}
+    except Exception:
+        return {"ip": ip, "note": "IP intelligence response could not be parsed"}
+
 def host_check(host, job_id, scope):
     if not in_scope(host, scope):
         return
     ips, reason = resolve_addresses(host)
     add_result(job_id, "hosts", {"host": host, "ips": ips, "dns": reason})
     add_result(job_id, "dns", dns_intel(host))
+    for ip in ips[:2]:
+        add_result(job_id, "network_intel", ip_network_intel(ip))
     if not ips:
         return
     response = fetch_target(host, "https", "/", MAX_BODY)
