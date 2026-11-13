@@ -13,6 +13,8 @@ jobs:
   recon:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    env:
+      DATABASE_URL: ${{ secrets.RECON_DATABASE_URL }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,9 +30,12 @@ jobs:
         working-directory: python-server
         run: python -m unittest discover -s tests -v
       - name: Run due recon jobs
+        if: env.DATABASE_URL != ''
         working-directory: python-server
         env:
-          DATABASE_URL: ${{ secrets.RECON_DATABASE_URL }}
           RECON_MAX_JOBS_PER_RUN: "2"
           RECON_MAX_RUNTIME_SECONDS: "1200"
         run: python scheduled_runner.py
+      - name: Wait for database setup
+        if: env.DATABASE_URL == ''
+        run: echo "Add the RECON_DATABASE_URL repository secret to enable the recon worker."
