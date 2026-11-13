@@ -15,8 +15,9 @@
     }
     body::before { content: ""; position: fixed; inset: 0; background: linear-gradient(180deg,rgba(5,12,24,.32),rgba(5,12,24,.68)); z-index: 0; }
     header, main, footer { position: relative; z-index: 1; }
-    header { display:flex; justify-content:flex-end; padding:22px 26px; }
+    header { display:flex; justify-content:flex-end; align-items:center; gap:22px; padding:22px 26px; }
     header a { color:#fff; text-decoration:none; font-size:14px; opacity:.92; }
+    header a.lab { border:1px solid #ffffff80; padding:8px 13px; border-radius:99px; background:#0b152c66; }
     main { width:min(720px, calc(100% - 34px)); margin:auto; text-align:center; padding:70px 0 100px; }
     .eyebrow { letter-spacing:.22em; text-transform:uppercase; font-size:11px; color:#dbeafe; margin-bottom:18px; }
     h1 { font-size:clamp(42px, 9vw, 76px); line-height:1; margin:0 0 14px; font-weight:700; letter-spacing:-.055em; text-shadow:0 3px 22px #0008; }
@@ -33,7 +34,7 @@
   </style>
 </head>
 <body>
-  <header><a href="https://www.google.com/" target="_blank" rel="noopener">Google</a></header>
+  <header><a class="lab" href="/lab">⚡ Cyber Lab</a><a href="https://www.google.com/" target="_blank" rel="noopener">Google</a></header>
   <main>
     <div class="eyebrow">Explore something new</div>
     <h1 aria-label="Google"><span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span></h1>
