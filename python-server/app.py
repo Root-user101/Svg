@@ -15,6 +15,11 @@ def cyber_lab():
     return render_template("lab.html")
 
 
+@app.get("/bounty")
+def bounty_hq():
+    return render_template("bounty.html")
+
+
 @app.get("/health")
 def health():
     return jsonify({"ok": True, "service": "python-server"})
