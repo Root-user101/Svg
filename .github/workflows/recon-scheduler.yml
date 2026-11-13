@@ -24,6 +24,9 @@ jobs:
           cache-dependency-path: python-server/requirements.txt
       - name: Install dependencies
         run: pip install -r python-server/requirements.txt
+      - name: Run scope safety tests
+        working-directory: python-server
+        run: python -m unittest discover -s tests -v
       - name: Run due recon jobs
         working-directory: python-server
         env:
