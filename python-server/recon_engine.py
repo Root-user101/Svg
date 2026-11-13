@@ -55,6 +55,15 @@ def in_scope(host, entries):
             return True
     return False
 
+def valid_recon_root(domain, entries):
+    # The apex may be used for passive CT/Wayback queries when only *.domain is in scope.
+    # host_check() still refuses to probe the apex unless it is explicitly in scope.
+    return in_scope(domain, entries) or any(
+        item.get("type") == "Wildcard domain"
+        and (item.get("host") or "").lower().rstrip(".") == domain
+        for item in entries
+    )
+
 def resolve_addresses(host):
     try:
         infos = socket.getaddrinfo(host, None, type=socket.SOCK_STREAM)
@@ -368,7 +377,7 @@ def start_job(domain, scope, active_ports=False):
         if kind not in ("Wildcard domain", "Exact hostname", "API", "Mobile app", "Other"):
             raise ValueError("Unsupported scope asset type.")
         normalized.append({"host": host, "type": kind})
-    if not normalized or not in_scope(domain, normalized):
+    if not normalized or not valid_recon_root(domain, normalized):
         raise ValueError("Target domain must match an asset in your supplied authorized scope list.")
     job_id = uuid.uuid4().hex[:12]
     job = {"id": job_id, "domain": domain, "status": "queued", "stage": "Queued",
