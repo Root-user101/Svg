@@ -18,9 +18,9 @@ import uuid
 from datetime import datetime, timezone
 from html.parser import HTMLParser
 
-MAX_HOSTS = 80
-MAX_PAGES = 10
-MAX_JS = 12
+MAX_HOSTS = 60
+MAX_PAGES = 6
+MAX_JS = 8
 MAX_BODY = 200_000
 PORTS = [80, 443, 8080, 8443, 8000, 3000]
 JOBS = {}
@@ -301,12 +301,15 @@ def host_check(host, job_id, scope):
     # Bounded same-host crawl. Redirects are not followed and each connection is IP-pinned.
     queue = ["/"]
     visited = set()
+    js_seen = set()
     while queue and len(visited) < MAX_PAGES:
         path = queue.pop(0)
         if path in visited or not path.startswith("/") or path.startswith("//"):
             continue
         visited.add(path)
         page = response if path == "/" else fetch_target(host, scheme, path, MAX_BODY)
+        if path != "/":
+            time.sleep(0.4)
         if "body" not in page:
             continue
         parser = Links()
@@ -323,12 +326,17 @@ def host_check(host, job_id, scope):
                                                    "source": "same-host crawl"})
                 if parsed.path and parsed.path not in visited and len(queue) < MAX_PAGES:
                     queue.append(parsed.path)
-        for raw in parser.scripts[:MAX_JS]:
+        for raw in parser.scripts:
             absolute = urllib.parse.urljoin(scheme + "://" + host + path, raw)
             parsed = urllib.parse.urlparse(absolute)
             if parsed.scheme in ("http", "https") and parsed.hostname == host:
                 js_path = parsed.path + (("?" + parsed.query) if parsed.query else "")
-                add_result(job_id, "javascript", {"host": host, "url": scheme + "://" + host + js_path})
+                js_url = scheme + "://" + host + js_path
+                if js_url in js_seen or len(js_seen) >= MAX_JS:
+                    continue
+                js_seen.add(js_url)
+                add_result(job_id, "javascript", {"host": host, "url": js_url})
+                time.sleep(0.4)
                 js = fetch_target(host, scheme, js_path, 150_000)
                 if "body" in js:
                     for match in re.findall(r"""(?:"|')((?:/|\.\./)[A-Za-z0-9_./?=&%-]{2,180})(?:"|')""", js["body"]):
