@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 64 * 1024  # 64 KiB request limit
@@ -7,14 +7,7 @@ app.config["MAX_CONTENT_LENGTH"] = 64 * 1024  # 64 KiB request limit
 
 @app.get("/")
 def index():
-    return jsonify({
-        "name": "ChatGPT Python Server Test",
-        "status": "running",
-        "endpoints": {
-            "health": "GET /health",
-            "echo": "POST /echo"
-        }
-    })
+    return render_template("index.html")
 
 
 @app.get("/health")
