@@ -5,7 +5,7 @@ import sys
 import time
 from datetime import datetime, timezone
 
-from recon_db import claim_job, enqueue_due_schedules, init_db, update_job
+from recon_db import claim_job, enqueue_due_schedules, init_db, update_job, previous_completed_job
 from recon_engine import start_job, get_job
 
 MAX_JOBS_PER_RUN = int(os.environ.get("RECON_MAX_JOBS_PER_RUN", "2"))
@@ -41,6 +41,21 @@ def main():
                         completed_at=snapshot.get("completed_at")
                     )
                     if snapshot.get("status") in ("completed", "failed"):
+                        if snapshot.get("status") == "completed":
+                            previous = previous_completed_job(row["domain"], job_id)
+                            current_hosts = {x.get("host") for x in snapshot.get("results", {}).get("discovered", []) if x.get("host")}
+                            previous_hosts = set()
+                            if previous:
+                                previous_hosts = {x.get("host") for x in previous.get("results", {}).get("discovered", []) if x.get("host")}
+                            change_record = {
+                                "baseline_job_id": previous.get("id") if previous else None,
+                                "new_hosts": sorted(current_hosts - previous_hosts) if previous else [],
+                                "missing_hosts": sorted(previous_hosts - current_hosts) if previous else [],
+                                "note": "First completed run establishes the baseline." if not previous else "Compare with the previous completed run."
+                            }
+                            merged = dict(snapshot.get("results", {}))
+                            merged["changes"] = [change_record]
+                            update_job(job_id, results=merged)
                         break
                 time.sleep(3)
             else:
