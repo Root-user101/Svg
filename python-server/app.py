@@ -4,7 +4,7 @@ from functools import wraps
 
 from flask import Flask, jsonify, request, render_template
 
-from recon_engine import clean_host, in_scope
+from recon_engine import clean_host, valid_recon_root
 from recon_db import create_job, get_job, list_jobs, create_schedule, list_schedules, set_schedule_enabled
 
 app = Flask(__name__)
@@ -80,7 +80,7 @@ def validate_target(data):
         if kind not in ("Wildcard domain", "Exact hostname", "API", "Mobile app", "Other"):
             raise ValueError("Unsupported scope asset type.")
         normalized.append({"host": host, "type": kind})
-    if not normalized or not in_scope(domain, normalized):
+    if not normalized or not valid_recon_root(domain, normalized):
         raise ValueError("The root domain must match one of the supplied scope entries.")
     return domain, normalized
 
