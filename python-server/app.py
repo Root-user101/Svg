@@ -10,6 +10,11 @@ def index():
     return render_template("index.html")
 
 
+@app.get("/lab")
+def cyber_lab():
+    return render_template("lab.html")
+
+
 @app.get("/health")
 def health():
     return jsonify({"ok": True, "service": "python-server"})
