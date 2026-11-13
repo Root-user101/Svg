@@ -151,6 +151,16 @@ def enqueue_due_schedules():
             )
     return created
 
+def previous_completed_job(domain, exclude_id):
+    with connect() as conn:
+        row = conn.execute(
+            """SELECT id,results,completed_at FROM recon_jobs
+               WHERE domain=%s AND id<>%s AND status='completed'
+               ORDER BY completed_at DESC NULLS LAST LIMIT 1""",
+            (domain, exclude_id)
+        ).fetchone()
+    return _jsonable(row) if row else None
+
 def claim_job():
     with connect() as conn:
         row = conn.execute(
