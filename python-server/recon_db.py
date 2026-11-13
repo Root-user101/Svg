@@ -127,8 +127,8 @@ def enqueue_due_schedules():
         rows = conn.execute(
             """SELECT * FROM recon_schedules
                WHERE enabled=TRUE AND next_run_at <= %s
-               ORDER BY next_run_at ASC
-               FOR UPDATE SKIP LOCKED LIMIT 10""",
+               ORDER BY next_run_at ASC LIMIT 10
+               FOR UPDATE SKIP LOCKED""",
             (now,)
         ).fetchall()
         for row in rows:
@@ -155,7 +155,7 @@ def claim_job():
     with connect() as conn:
         row = conn.execute(
             """SELECT * FROM recon_jobs WHERE status='queued'
-               ORDER BY created_at ASC FOR UPDATE SKIP LOCKED LIMIT 1"""
+               ORDER BY created_at ASC LIMIT 1 FOR UPDATE SKIP LOCKED"""
         ).fetchone()
         if not row:
             return None
