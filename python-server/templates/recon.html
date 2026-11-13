@@ -41,7 +41,7 @@ $('startBtn').disabled=true;$('formMsg').textContent='Submitting job…';try{con
 async function loadSchedules(){
  try{
   const d=await api('/api/recon/schedules');
-  $('scheduleList').innerHTML=d.schedules.map(s=>'<div class="jobitem"><strong>'+esc(s.domain)+'</strong><small>Every '+s.interval_hours+'h · next '+new Date(s.next_run_at).toLocaleString()+' · '+(s.enabled?'enabled':'paused')+'</small><button class="btn ghost" style="margin-top:7px" onclick="toggleSchedule(\\''+s.id+'\\','+(!s.enabled)+')">'+(s.enabled?'Pause':'Enable')+'</button></div>').join('')||'No recurring targets saved.';
+  $('scheduleList').innerHTML=d.schedules.map(s=>'<div class="jobitem"><strong>'+esc(s.domain)+'</strong><small>Every '+s.interval_hours+'h · next '+new Date(s.next_run_at).toLocaleString()+' · '+(s.enabled?'enabled':'paused')+'</small><button class="btn ghost" style="margin-top:7px" data-id="'+esc(s.id)+'" data-enabled="'+(s.enabled?0:1)+'" onclick="toggleSchedule(this.dataset.id,!!Number(this.dataset.enabled))">'+(s.enabled?'Pause':'Enable')+'</button></div>').join('')||'No recurring targets saved.';
  }catch(e){$('scheduleList').textContent=e.message}
 }
 async function toggleSchedule(id,enabled){
