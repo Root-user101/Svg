@@ -9,7 +9,7 @@
 <div class="notice">Authorized testing only. You must have permission for every target. Active mode performs low-rate TCP connection checks on a short common-port list plus basic HTTP/TLS checks. No exploitation or destructive tests. Scope is supplied with each job and is not independently verified against a bounty policy.</div>
 <div class="layout">
 <aside class="panel"><div class="panel-head"><h2>New recon job</h2><span class="tag">Manual launch</span></div><div class="panel-body">
-<label for="target">Root domain</label><input id="target" placeholder="example.com" autocomplete="off">
+<label for="apiKey">Private recon access key</label><input id="apiKey" type="password" placeholder="Set RECON_API_KEY in Render, then enter it here" autocomplete="off"><div class="tiny">The key is sent only to this server and is not saved in browser storage.</div><label for="target">Root domain</label><input id="target" placeholder="example.com" autocomplete="off">
 <label for="scope">Authorized scope entries</label><textarea id="scope" rows="4" placeholder="One per line:&#10;*.example.com&#10;api.example.com"></textarea><div class="tiny">Use *.domain.com for wildcard entries. Exact host entries only match that hostname.</div>
 <div class="checkrow"><input id="active" type="checkbox"><label for="active">Enable limited TCP port discovery (common ports only)</label></div>
 <div class="checkrow"><input id="confirm" type="checkbox"><label for="confirm">I confirm I am authorized to test these assets and have reviewed the program policy.</label></div>
@@ -25,7 +25,7 @@
 <script>
 let current=null,activeTab='discovered',poll=null;
 const $=id=>document.getElementById(id);
-async function api(url,opts={}){const r=await fetch(url,{headers:{'Content-Type':'application/json'},...opts});const d=await r.json();if(!r.ok)throw Error(d.error||'Request failed');return d}
+async function api(url,opts={}){const headers={'Content-Type':'application/json','X-Recon-Key':$('apiKey').value.trim()};const r=await fetch(url,{headers,...opts});const d=await r.json();if(!r.ok)throw Error(d.error||'Request failed');return d}
 function scopeRows(){return $('scope').value.split(/\n+/).map(s=>s.trim()).filter(Boolean).map(s=>({host:s.replace(/^\*\./,''),type:s.startsWith('*.')?'Wildcard domain':'Exact hostname'}))}
 async function startJob(){if(!$('confirm').checked){$('formMsg').textContent='Confirm authorization first.';return}const target=$('target').value.trim(),scope=scopeRows();if(!target||!scope.length){$('formMsg').textContent='Enter a root domain and at least one scope entry.';return}
 $('startBtn').disabled=true;$('formMsg').textContent='Submitting job…';try{const d=await api('/api/recon/start',{method:'POST',body:JSON.stringify({domain:target,scope,active_ports:$('active').checked})});current=d.job_id;activeTab='discovered';await loadJob();await loadJobs();$('formMsg').textContent='Job submitted. Keep this page open while it runs.';if(poll)clearInterval(poll);poll=setInterval(()=>loadJob().catch(()=>{}),2500)}catch(e){$('formMsg').textContent=e.message}finally{$('startBtn').disabled=false}}
