@@ -3,7 +3,7 @@ name: Recon scheduler
 on:
   workflow_dispatch:
   schedule:
-    - cron: "17 */6 * * *"
+    - cron: "23 * * * *"
 
 concurrency:
   group: authorized-recon-worker
