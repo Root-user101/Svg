@@ -272,6 +272,17 @@ def host_check(host, job_id, scope):
     add_result(job_id, "web", {"host": host, "url": scheme + "://" + host + "/",
                 "status": response["status"], "server": headers.get("server", ""),
                 "technologies": technologies, "security_headers": security_headers})
+    review_items = []
+    if scheme == "https" and not headers.get("strict-transport-security"):
+        review_items.append("HSTS header absent")
+    if not headers.get("content-security-policy"):
+        review_items.append("CSP header absent")
+    if not headers.get("x-content-type-options"):
+        review_items.append("X-Content-Type-Options header absent")
+    if not headers.get("x-frame-options") and not headers.get("content-security-policy"):
+        review_items.append("No obvious clickjacking header/policy")
+    add_result(job_id, "checks", {"host": host, "review_items": review_items,
+                                  "note": "Informational checks only; absence is not automatically a vulnerability."})
     if scheme == "https":
         try:
             with socket.create_connection((ips[0], 443), timeout=5) as raw:
